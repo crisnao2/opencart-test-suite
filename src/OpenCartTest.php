@@ -46,10 +46,36 @@ class OpenCartTest extends PHPUnit_Framework_TestCase
 
             ob_start();
             self::loadConfiguration();
-            require_once(DIR_SYSTEM . 'startup.php');
-            require_once(DIR_SYSTEM . 'framework.php');
-            ob_end_clean();
 
+            $index_path = realpath(DIR_SYSTEM . '../') . '/index.php';
+            if (!is_file($index_path)) {
+                throw new Exception("Missing index file at: " . $index_path);
+            }
+
+            $lines = file($index_path);
+            foreach ($lines as $line) {
+                if (preg_match('#define\([\'"]version[\'"], ?[\'"]([^\'"]*)[\'"]\);#i', rtrim($line), $arr)) {
+                    $VERSION = $arr[1];
+
+                    break;
+                }
+            }
+
+            if (!isset($VERSION)) {
+                throw new Exception("Missing VERSION constant at: " . $index_path);
+            }
+
+            if (version_compare($VERSION, '2.2', '<')) {
+                if (self::isAdmin()) {
+                    require_once(DIR_APPLICATION . 'index.php');
+                } else {
+                    require_once(realpath(DIR_APPLICATION . '../') . '/index.php');
+                }
+            } else {
+                require_once(DIR_SYSTEM . 'startup.php');
+                require_once(DIR_SYSTEM . 'framework.php');
+            }
+            ob_end_clean();
 
             self::$registry = $registry;
             self::$registry->set('controller', $controller);
