@@ -29,11 +29,11 @@ class OpenCartTest extends PHPUnit_Framework_TestCase
 
         $config_path = $_ENV['OC_ROOT'] . (self::isAdmin() === false ? '' : 'admin/') . 'config.php';
 
-        $oc_http_host = getenv('HTTP_HOST');
-        if ($oc_http_host != false && !empty($oc_http_host)) {
-            $_SERVER['HTTP_HOST'] = $oc_http_host;
-        } else {
-            throw new \Exception('HTTP_HOST environment variable needs to be set');
+        foreach ($_SERVER as $key => $value) {
+            $env = getenv($key);
+            if ($env !== false) {
+                $_SERVER[$key] = $env;
+            }
         }
 
         if (file_exists($config_path)) {
